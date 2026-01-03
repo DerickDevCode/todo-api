@@ -1,7 +1,6 @@
 # 📘 To-do API — Documentação
 
-#### Este é um projeto de estudo de API REST desenvolvida com **Django REST Framework**, com autenticação por **Token**,
-**JWT** e **Session**.
+#### Este é um projeto de estudo de API REST desenvolvida com **Django REST Framework**, com autenticação por **Token**, **JWT** e **Session**.
 
  ---
 
