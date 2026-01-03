@@ -34,4 +34,4 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [OrderingFilter, DjangoFilterBackend]
     filterset_fields = ['name', 'email', 'is_staff', 'is_active', 'date_joined']
     ordering_fields = ['name', 'email', 'is_staff', 'is_active', 'date_joined']
-    ordering = ['date_joined']
+    ordering = ['-date_joined']

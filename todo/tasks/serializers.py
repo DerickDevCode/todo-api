@@ -7,7 +7,7 @@ from todo.tasks.models import Task
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = ['id', 'titulo', 'descricao', 'status', 'user']
+        fields = ['id', 'titulo', 'descricao', 'status', 'criada_em']
 
 
 class UserSerializer(serializers.ModelSerializer):
