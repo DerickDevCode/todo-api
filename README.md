@@ -1,306 +1,259 @@
-# 📘 To-do API — Documentação
+# 📝 To-Do List API
 
-#### Este é um projeto de estudo de API REST desenvolvida com **Django REST Framework**, com autenticação por **Token**, **JWT** e **Session**.
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue?style=for-the-badge&logo=python)
+![Django](https://img.shields.io/badge/Django-6.0%2B-092E20?style=for-the-badge&logo=django)
+![DRF](https://img.shields.io/badge/Django_REST-Framework-ff1709?style=for-the-badge&logo=django)
+![JWT](https://img.shields.io/badge/JWT-Auth-black?style=for-the-badge&logo=json-web-tokens)
 
- ---
+#### Projeto de estudo de uma API REST desenvolvida com Django REST Framework, utilizando autenticação por Token, JWT e Session.
+
+---
+
+## 📖 Sobre o Projeto
+
+Este projeto consiste em uma aplicação backend simples para gerenciamento de tarefas (To-Do), desenvolvida com o
+objetivo de estudar e praticar conceitos do Django REST Framework, como:
+
+- **Autenticação Multi-camadas:** Token, JWT e Session.
+- **Permissões Granulares:** Diferenciação entre Admins e Usuários comuns.
+- **Isolamento de Dados:** Cada usuário acessa estritamente seus próprios recursos.
+- **Otimização de API:** Paginação, filtros dinâmicos e ordenação.
+
+---
+
+## 🛠 Tecnologias Utilizadas
+
+- **Linguagem:** Python
+- **Framework:** Django & Django REST Framework
+- **Autenticação:** SimpleJWT & DRF Token
+- **Filtros:** Django-Filter
+- **Banco de Dados:** SQLite (Padrão) / PostgreSQL (Suportado)
+
+---
 
 ## 🔐 Autenticação
 
-A API suporta **três métodos** de autenticação:
+### 1️⃣ JWT (SimpleJWT) - Recomendado
 
-### 1️⃣ Token Authentication (DRF)
+Ideal para frontends modernos (React, Vue, Mobile).
 
-#### Obter token:
+| Método          | Endpoint                   | Body                                     |
+|:----------------|:---------------------------|:-----------------------------------------|
+| **Obter Token** | POST `/api/token/`         | `{"username": "...", "password": "..."}` |
+| **Refresh**     | POST `/api/token/refresh/` | `{"refresh": "..."}`                     |
+| **Verify**      | POST `/api/token/verify/`  | `{"token": "..."}`                       |
 
-**POST** `/api-token-auth/`
+- **Header para requisições**: Authorization: Bearer <seu_token_de_acesso>
 
-**Request:**
+### 2️⃣ Token Authentication (DRF)
 
- ```json
- {
-  "username": "user",
-  "password": "senha"
-}
- ```
+Simples e persistente, ideal para integrações via script.
 
-**Response:**
-
- ```json
- {
-  "token": "abc123..."
-}
- ```
-
-**Header::**
-
- ```
- Authorization: Token abc123...
- ```
-
- ---
-
-### 2️⃣ JWT (SimpleJWT)
-
-#### Obter token:
-
-**POST** `/api/token/`
-
- ```json
- {
-  "username": "user",
-  "password": "senha"
-}
- ```
-
-**Response:**
-
- ```json
- {
-  "access": "jwt_access_token",
-  "refresh": "jwt_refresh_token"
-}
- ```
-
-**Header:**
-
- ```
- Authorization: Bearer jwt_access_token
- ```
-
-#### Refresh:
-
-**POST** `/api/token/refresh/`
-
-#### Verify:
-
-**POST** `/api/token/verify/`
-
- ---
+- **Gerar Token**: POST `/api-token-auth/`
+- **Body**:
+    ```json
+    {
+     "username": "user", "password": "senha"
+     }
+     ```
+- **Header**: Authorization: Token <seu_token>
 
 ### 3️⃣ Session Authentication
 
-- Browsable API
-- Login em `/api-auth/login/`
+Utilizado para acesso via navegador (Browsable API).
 
- ---
+- **Login**: `/api-auth/login/`
 
-## 👤 Usuários (`/api/v1/users/`)
+---
 
-🔒 **Acesso restrito a administradores (`IsAdminUser`)**
+## 🚀 Endpoints da API
 
-### Campos expostos
+### 👤 Usuários (`api/v1/users/`)
 
-- `id`
-- `name`
-- `email`
-- `date_joined` *(read-only)*
-- `tasks` *(relacionamento 1:N)*
+🛑 **Acesso Restrito**: Apenas administradores (IsAdminUser) podem gerenciar usuários.
 
- ---
+| Método | Endpoint              | Descrição                                       |
+|:-------|:----------------------|:------------------------------------------------|
+| GET    | `/api/v1/users/`      | Lista todos os usuários (com filtros/ordenação) |
+| POST   | `/api/v1/users/`      | Cria um novo usuário                            |
+| GET    | `/api/v1/users/{id}/` | Detalhes de um usuário específico               |
+| PUT    | `/api/v1/users/{id}/` | Atualiza um usuário                             |
+| DELETE | `/api/v1/users/{id}/` | Remove um usuário                               |
 
-### Endpoints
+- **Filtros Disponíveis**: name, email, is_staff, is_active, date_joined.
 
-#### 📄 Listar usuários
+---
 
-**GET** `/api/v1/users/`
+### ✅ Tarefas (`api/v1/tasks/`)
 
-**Filtros:**
+🔒 **Privacidade**: Usuários autenticados acessam apenas suas próprias tasks.
 
-- `name`
-- `email`
-- `is_staff`
-- `is_active`
-- `date_joined`
+### Modelo de Dados
 
-**Ordenação:**
+| Campo     | Tipo    | Detalhes                              |
+|:----------|:--------|:--------------------------------------|
+| id        | Integer | PK, Automático                        |
+| titulo    | String  | Obrigatório (Max 64 chars)            |
+| descricao | String  | Opcional                              |
+| status    | String  | pendente ou concluido                 |
+| user      | FK      | Definido automaticamente pelo request |
 
-- `name`
-- `email`
-- `is_staff`
-- `is_active`
-- `date_joined`
+### Operações:
 
-**Exemplo:**
+**1. Listar Tarefas**
 
- ```
- /api/v1/users/?is_active=true&ordering=-date_joined
- ```
+- **Endpoint**: GET `/api/v1/tasks/`
+- **Exemplo**: `/api/v1/tasks/?status=pendente&ordering=-criada_em`
 
- ---
+**2. Criar Tarefa**
 
-#### 🔍 Detalhar usuário
+- **Endpoint**: POST `/api/v1/tasks/`
+- **Body**:
+    ```json
+    {
+      "titulo": "Aprender Docker", "descricao": "...", "status": "pendente"
+    }
+    ```
+- **Nota**: Não envie o campo user, o sistema o identifica pelo token(se enviado será ignorado).
 
-**GET** `/api/v1/users/{id}/`
+**3. Atualizar e Deletar**
 
- ---
+- **Atualizar**: PUT/PATCH `/api/v1/tasks/{id}/`
+- **Deletar**: DELETE `/api/v1/tasks/{id}/`
 
-#### ➕ Criar usuário
-
-**POST** `/api/v1/users/`
-
- ```json
- {
-  "name": "Derick",
-  "email": "derick@email.com",
-  "password": "123456"
-}
- ```
-
- ---
-
-#### ✏️ Atualizar usuário
-
-**PUT / PATCH** `/api/v1/users/{id}/`
-
- ---
-
-#### ❌ Deletar usuário
-
-**DELETE** `/api/v1/users/{id}/`
-
- ---
-
-## ✅ Tasks (`/api/v1/tasks/`)
-
-🔒 **Usuário autenticado só acessa suas próprias tasks**
-
-### Modelo Task
-
-| Campo       | Tipo     | Observação               |
- |-------------|----------|--------------------------|
-| `id`        | integer  | automático               |
-| `titulo`    | string   | máx 64                   |
-| `descricao` | string   | opcional                 |
-| `status`    | enum     | `pendente` / `concluido` |
-| `criada_em` | datetime | automático               |
-| `user`      | FK       | definido automaticamente |
-
- ---
-
-### Endpoints
-
-#### 📄 Listar tasks
-
-**GET** `/api/v1/tasks/`
-
-**Filtros:**
-
-- `status`
-- `criada_em`
-
-**Ordenação:**
-
-- `status`
-- `criada_em`
-
-**Padrão:**
-
- ```
- ordering=-criada_em
- ```
-
-**Exemplo:**
-
- ```
- /api/v1/tasks/?status=pendente&ordering=criada_em
- ```
-
- ---
-
-#### 🔍 Detalhar task
-
-**GET** `/api/v1/tasks/{id}/`
-
- ---
-
-#### ➕ Criar task
-
-**POST** `/api/v1/tasks/`
-
- ```json
- {
-  "titulo": "Estudar DRF",
-  "descricao": "Documentar a API",
-  "status": "pendente"
-}
- ```
-
-📌 O campo `user` é definido automaticamente pelo usuário autenticado.
-
- ---
-
-#### ✏️ Atualizar task
-
-**PUT / PATCH** `/api/v1/tasks/{id}/`
-
- ---
-
-#### ❌ Deletar task
-
-**DELETE** `/api/v1/tasks/{id}/`
-
- ---
+---
 
 ## 📄 Paginação
 
-A API utiliza paginação baseada em número de páginas (**PageNumberPagination**).
+A API implementa paginação para performance.
 
-### Configuração
+- **Tamanho da página**: 3 itens (configurável).
+- **Parâmetro**: `?page=X`
 
-```python
-REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 3
-}
-```
-
-### Funcionamento
-
-- Cada resposta retorna **3 registros por página**
-- Parâmetro de paginação: `page`
-
-### Exemplo de requisição
-
-```http
-GET /api/v1/tasks/?page=2
-```
-
-### Estrutura da resposta paginada
+**Exemplo de Resposta**:
 
 ```json
 {
-  "count": 10,
-  "next": "http://localhost:8000/api/v1/tasks/?page=3",
-  "previous": "http://localhost:8000/api/v1/tasks/?page=1",
+  "count": 12,
+  "next": "http://api/v1/tasks/?page=3",
+  "previous": "http://api/v1/tasks/?page=1",
   "results": [
     {
       "id": 4,
-      "titulo": "Exemplo",
-      "descricao": "",
-      "status": "pendente",
-      "criada_em": "2025-01-01T10:00:00Z"
+      "titulo": "Task 04",
+      "status": "pendente"
     }
   ]
 }
 ```
 
-## ⚙️ Regras importantes
+---
 
-- Usuários não acessam tasks de outros usuários
-- Campo `user` não é aceito no payload
-- Apenas admins acessam `/users`
-- Filtros via `django-filter`
-- Ordenação via `ordering`
+## 🧠 Engenharia e Boas Práticas
 
- ---
+Este projeto não é apenas um CRUD, mas uma demonstração de arquitetura limpa dentro do Django:
 
-## 🧠 Boas práticas aplicadas
+- ✅ <u>Security First</u>: O campo user é injetado via `perform_create`, impedindo que um usuário crie tasks para
+  terceiros.
 
-- Isolamento de dados por usuário (`get_queryset`)
-- Ownership automático (`perform_create`)
-- Versionamento de API
-- Múltiplos métodos de autenticação
-- ViewSets + Routers
-- Filtros e ordenação declarativos
+- ✅ <u>Queryset Isolation</u>: Sobrescrita do `get_queryset` garante que dados não vazem entre usuários.
 
- ---
+- ✅ <u>Versionamento</u>: Namespace `/api/v1/` preparado para evoluções futuras.
+
+- ✅ <u>Clean Code</u>: Uso extensivo de ViewSets e Routers para reduzir código boilerplate.
+
+## 💻 Como Rodar Localmente
+
+### 🔹 <u>Opção 1: Utilizando Poetry (recomendado)</u>
+
+### Clone o repositório
+
+```bash
+  git clone https://github.com/seu-usuario/todo-api.git  
+  cd todo-api
+```
+
+### Instale as dependências
+
+```bash
+  poetry install
+```
+
+### Ative o ambiente virtual
+
+```bash
+  poetry shell
+```
+
+### Execute as migrações
+
+```bash
+  python manage.py migrate
+```
+
+### Crie um superusuário
+
+```bash
+  python manage.py createsuperuser
+```
+
+### Rode o servidor
+
+```bash
+  python manage.py runserver
+```
+
+---
+
+### 🔹 <u>Opção 2: Sem Poetry (utilizando venv e pip)</u>
+
+### Clone o repositório
+
+```bash
+  git clone https://github.com/seu-usuario/todo-api.git  
+  cd todo-api
+```
+
+### Crie um ambiente virtual
+
+```bash
+  python -m venv .venv
+```
+
+### Ative o ambiente virtual
+
+**Linux/Mac:**
+
+```bash
+  source .venv/bin/activate
+```
+
+**Windows:**
+
+```bash
+  .venv\Scripts\activate
+```
+
+### Instale as dependências
+
+```bash
+  pip install -r requirements.txt
+```
+
+### Execute as migrações
+
+```bash
+  python manage.py migrate
+```
+
+### Crie um superusuário
+
+```bash
+  python manage.py createsuperuser
+```
+
+### Rode o servidor
+
+```bash
+  python manage.py runserver
+```
